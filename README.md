@@ -2,7 +2,7 @@
 
 This is an experimental Swift library to show how to connect to a remote Apache Spark Connect Server and run SQL statements to manipulate remote data.
 
-So far, this library project is tracking the upstream changes like the official [Apache Spark](https://spark.apache.org) 4.0 release and [Apache Arrow](https://arrow.apache.org) project's Swift-support. 
+So far, this library project is tracking the upstream changes like the [Apache Spark](https://spark.apache.org) 4.0.0 RC2 release and [Apache Arrow](https://arrow.apache.org) project's Swift-support.
 
 ## Requirement
 - [Apache Spark 4.0.0 RC2 (March 2025)](https://dist.apache.org/repos/dist/dev/spark/v4.0.0-rc2-bin/)
@@ -12,7 +12,7 @@ So far, this library project is tracking the upstream changes like the official 
 - [gRPC Swift NIO Transport 1.0](https://github.com/grpc/grpc-swift-nio-transport/releases/tag/1.0.0)
 - [Apache Arrow Swift](https://github.com/apache/arrow/tree/main/swift)
 
-## Run `Apache Spark 4.0 Connect Server`
+## Run `Apache Spark 4.0.0 RC2 Connect Server`
 
     $ curl -LO https://dist.apache.org/repos/dist/dev/spark/v4.0.0-rc2-bin/spark-4.0.0-bin-hadoop3.tgz
     $ tar xvfz spark-4.0.0-bin-hadoop3.tgz
