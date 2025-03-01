@@ -119,3 +119,6 @@ print(try await spark.sql("SELECT * FROM t").count())
 
 await spark.stop()
 ```
+
+You can find this example in the following repository.
+- https://github.com/dongjoon-hyun/spark-connect-swift-app
