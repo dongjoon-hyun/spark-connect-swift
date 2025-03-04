@@ -83,7 +83,7 @@ let package = Package(
       .macOS(.v15)
     ],
     dependencies: [
-      .package(url: "git@github.com:dongjoon-hyun/spark-connect-swift.git", from: "0.1.0")
+      .package(url: "git@github.com:dongjoon-hyun/spark-connect-swift.git", from: "0.2.0")
     ],
     targets: [
         .executableTarget(
@@ -101,8 +101,8 @@ $ cat Sources/main.swift
 
 import SparkConnect
 
-let spark = try await SparkConnect.SparkSession.builder.getOrCreate()
-print("Connected to Apache Spark \(try await spark.version) Server")
+let spark = try await SparkSession.builder.getOrCreate()
+print("Connected to Apache Spark \(await spark.version) Server")
 
 let statements = [
   "DROP TABLE IF EXISTS t",
