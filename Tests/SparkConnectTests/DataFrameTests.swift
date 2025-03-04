@@ -22,6 +22,15 @@ import Testing
 
 struct DataFrameTests {
   @Test
+  func rdd() async throws {
+    let spark = try await SparkSession.builder.getOrCreate()
+    await #expect(throws: SparkConnectError.UnsupportedOperationException) {
+      try await spark.range(1).rdd()
+    }
+    await spark.stop()
+  }
+
+  @Test
   func schema() async throws {
     let spark = try await SparkSession.builder.getOrCreate()
 
@@ -62,9 +71,7 @@ struct DataFrameTests {
   @Test
   func show() async throws {
     let spark = try await SparkSession.builder.getOrCreate()
-    await #expect(throws: SparkConnectError.UnsupportedOperationException) {
-      try await spark.sql("SELECT 1").show()
-    }
+    try await spark.sql("SELECT 1").show()
     await spark.stop()
   }
 }

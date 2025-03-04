@@ -37,12 +37,19 @@ public struct DataFrame: Sendable {
     self.plan = sqlText.toSparkConnectPlan
   }
 
+  func rdd() throws {
+    // SQLSTATE: 0A000
+    // [UNSUPPORTED_CONNECT_FEATURE.RDD]
+    // Feature is not supported in Spark Connect: Resilient Distributed Datasets (RDDs).
+    throw SparkConnectError.UnsupportedOperationException
+  }
+
   func schema() async throws -> DataType {
     var dataType: Spark_Connect_DataType? = nil
 
     try await withGRPCClient(
       transport: .http2NIOPosix(
-        target: .ipv4(host: "127.0.0.1", port: 15002),
+        target: .dns(host: spark.client.host, port: spark.client.port),
         transportSecurity: .plaintext
       )
     ) { client in
@@ -59,7 +66,7 @@ public struct DataFrame: Sendable {
 
     try await withGRPCClient(
       transport: .http2NIOPosix(
-        target: .ipv4(host: "127.0.0.1", port: 15002),
+        target: .dns(host: spark.client.host, port: spark.client.port),
         transportSecurity: .plaintext
       )
     ) { client in
@@ -78,27 +85,25 @@ public struct DataFrame: Sendable {
     throw SparkConnectError.UnsupportedOperationException
   }
 
+  // TODO: Show the real data
   public func show() async throws {
-    throw SparkConnectError.UnsupportedOperationException
-
-    //    try await withGRPCClient(
-    //      transport: .http2NIOPosix(
-    //        target: .ipv4(host: "127.0.0.1", port: 15002),
-    //        transportSecurity: .plaintext
-    //      )
-    //    ) { client in
-    //      let service = Spark_Connect_SparkConnectService.Client(wrapping: client)
-    //      try await service.executePlan(getRequest(sqlText)) { response in
-    //        for try await m in response.messages {
-    //          if m.hasSchema {
-    //            print(m.schema)
-    //          }
-    //          if !m.arrowBatch.data.isEmpty {
-    //            print(m.arrowBatch.rowCount)
-    //            print(m.arrowBatch)
-    //          }
-    //        }
-    //      }
-    //    }
+    try await withGRPCClient(
+      transport: .http2NIOPosix(
+        target: .dns(host: spark.client.host, port: spark.client.port),
+        transportSecurity: .plaintext
+      )
+    ) { client in
+      let service = Spark_Connect_SparkConnectService.Client(wrapping: client)
+      try await service.executePlan(spark.client.getExecutePlanRequest(spark.sessionID, plan)) {
+        response in
+        for try await m in response.messages {
+          if !m.arrowBatch.data.isEmpty {
+            for _ in 0..<m.arrowBatch.rowCount {
+              print("")
+            }
+          }
+        }
+      }
+    }
   }
 }

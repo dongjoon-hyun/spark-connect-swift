@@ -35,12 +35,16 @@ typealias UserContext = Spark_Connect_UserContext
 // Conceptually the remote spark session that communicates with the server
 struct Client {
   let clientType: String = "swift"
-  let remote: String
+  let url: URL
+  let host: String
+  let port: Int
   let userContext: UserContext
   let sessionID: String? = nil
 
-  init(remote: String = "sc://localhost:15002", user: String = "spark") {
-    self.remote = remote
+  init(remote: String, user: String) {
+    self.url = URL(string: remote)!
+    self.host = url.host() ?? "localhost"
+    self.port = self.url.port ?? 15002
     self.userContext = user.toUserContext
   }
 
@@ -52,7 +56,7 @@ struct Client {
   func connect(_ sessionID: String) async throws -> AnalyzePlanResponse {
     try await withGRPCClient(
       transport: .http2NIOPosix(
-        target: .ipv4(host: "127.0.0.1", port: 15002),
+        target: .dns(host: self.host, port: self.port),
         transportSecurity: .plaintext
       )
     ) { client in
@@ -80,7 +84,7 @@ struct Client {
   func setConf(sessionID: String, map: [String: String]) async throws -> Bool {
     try await withGRPCClient(
       transport: .http2NIOPosix(
-        target: .ipv4(host: "127.0.0.1", port: 15002),
+        target: .dns(host: self.host, port: self.port),
         transportSecurity: .plaintext
       )
     ) { client in

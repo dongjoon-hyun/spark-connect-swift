@@ -26,7 +26,11 @@ public actor SparkSession {
 
   public static let builder: Builder = Builder()
 
-  let client: Client = Client()
+  let client: Client
+
+  init(_ connection: String, _ userID: String? = nil) {
+    self.client = Client(remote: connection, user: userID ?? "")
+  }
 
   // This is supposed to be overwritten by the Spark Connect Servier's Spark version
   public var version: String = ""
@@ -83,7 +87,12 @@ public actor SparkSession {
       return self
     }
 
-    func remote(_ url: String) -> Builder {
+    func clear() -> Builder {
+      sparkConf.removeAll()
+      return self
+    }
+
+    public func remote(_ url: String) -> Builder {
       return config("spark.remote", url)
     }
 
@@ -96,10 +105,11 @@ public actor SparkSession {
     }
 
     func create() async throws -> SparkSession {
-      let session = SparkSession()
+      let session = SparkSession(sparkConf["spark.remote"] ?? "sc://localhost:15002")
       let response = try await session.client.connect(session.sessionID)
       await session.setVersion(response.sparkVersion.version)
-      try await session.client.setConf(sessionID: session.sessionID, map: sparkConf)
+      let isSuccess = try await session.client.setConf(sessionID: session.sessionID, map: sparkConf)
+      assert(isSuccess)
       return session
     }
 

@@ -26,7 +26,8 @@ struct BuilderTests {
   func builderDefault() async throws {
     let spark = try await SparkSession.builder.getOrCreate()
     #expect(await spark.client.clientType == "swift")
-    #expect(await spark.client.remote == "sc://localhost:15002")
+    #expect(await spark.client.url.host() == "localhost")
+    #expect(await spark.client.url.port == 15002)
     await spark.stop()
   }
 
@@ -35,6 +36,7 @@ struct BuilderTests {
     // Don't try to connect
     let builder = await SparkSession.builder.remote("sc://spark:1234")
     #expect(await builder.sparkConf["spark.remote"] == "sc://spark:1234")
+    await builder.clear()
   }
 
   @Test
