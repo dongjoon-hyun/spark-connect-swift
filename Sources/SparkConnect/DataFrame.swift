@@ -51,8 +51,9 @@ public actor DataFrame: Sendable {
     throw SparkConnectError.UnsupportedOperationException
   }
 
-  func schema() async throws -> DataType {
-    var dataType: Spark_Connect_DataType? = nil
+  // We cannot expose the internal type `Spark_Connect_DataType`.
+  public func schema() async throws -> String {
+    var dataType: String? = nil
 
     try await withGRPCClient(
       transport: .http2NIOPosix(
@@ -63,7 +64,7 @@ public actor DataFrame: Sendable {
       let service = Spark_Connect_SparkConnectService.Client(wrapping: client)
       let response = try await service.analyzePlan(
         spark.client.getAnalyzePlanRequest(spark.sessionID, plan))
-      dataType = response.schema.schema
+      dataType = try response.schema.schema.jsonString()
     }
     return dataType!
   }

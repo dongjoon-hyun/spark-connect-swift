@@ -35,15 +35,19 @@ struct DataFrameTests {
     let spark = try await SparkSession.builder.getOrCreate()
 
     let schema1 = try await spark.sql("SELECT 'a' as col1").schema()
-    #expect(schema1.struct.fields.count == 1)
-    #expect(schema1.struct.fields[0].name == "col1")
+    #expect(
+      schema1
+        == #"{"struct":{"fields":[{"name":"col1","dataType":{"string":{"collation":"UTF8_BINARY"}}}]}}"#
+    )
 
     let schema2 = try await spark.sql("SELECT 'a' as col1, 'b' as col2").schema()
-    #expect(schema2.struct.fields.count == 2)
-    #expect(schema2.struct.fields[1].name == "col2")
+    #expect(
+      schema2
+        == #"{"struct":{"fields":[{"name":"col1","dataType":{"string":{"collation":"UTF8_BINARY"}}},{"name":"col2","dataType":{"string":{"collation":"UTF8_BINARY"}}}]}}"#
+    )
 
     let emptySchema = try await spark.sql("DROP TABLE IF EXISTS nonexistent").schema()
-    #expect(emptySchema.struct.fields.count == 0)
+    #expect(emptySchema == #"{"struct":{}}"#)
     await spark.stop()
   }
 
