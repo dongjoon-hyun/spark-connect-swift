@@ -83,7 +83,7 @@ let package = Package(
       .macOS(.v15)
     ],
     dependencies: [
-      .package(url: "git@github.com:dongjoon-hyun/spark-connect-swift.git", from: "0.2.0")
+      .package(url: "git@github.com:dongjoon-hyun/spark-connect-swift.git", from: "0.3.0")
     ],
     targets: [
         .executableTarget(
