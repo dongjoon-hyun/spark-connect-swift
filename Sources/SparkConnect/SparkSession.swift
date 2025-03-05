@@ -62,11 +62,11 @@ public actor SparkSession {
     client.stop()
   }
 
-  func range(_ end: Int64) async throws -> DataFrame {
+  public func range(_ end: Int64) async throws -> DataFrame {
     return try await range(0, end)
   }
 
-  func range(_ start: Int64, _ end: Int64, _ step: Int64 = 1) async throws -> DataFrame {
+  public func range(_ start: Int64, _ end: Int64, _ step: Int64 = 1) async throws -> DataFrame {
     return try await DataFrame(spark: self, plan: client.getPlanRange(start, end, step))
   }
 
