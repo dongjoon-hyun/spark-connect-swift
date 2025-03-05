@@ -1,3 +1,4 @@
+import Atomics
 //
 // Licensed to the Apache Software Foundation (ASF) under one
 // or more contributor license agreements.  See the NOTICE file
@@ -20,12 +21,14 @@ import Foundation
 import GRPCCore
 import GRPCNIOTransportHTTP2
 import GRPCProtobuf
+import SwiftyTextTable
 import Synchronization
 
 // A DataFrame which supports only SQL queries
-public struct DataFrame: Sendable {
+public actor DataFrame: Sendable {
   var spark: SparkSession
   var plan: Plan
+  var schema: DataType? = nil
 
   init(spark: SparkSession, plan: Plan) async throws {
     self.spark = spark
@@ -35,6 +38,10 @@ public struct DataFrame: Sendable {
   init(spark: SparkSession, sqlText: String) async throws {
     self.spark = spark
     self.plan = sqlText.toSparkConnectPlan
+  }
+
+  private func setSchema(_ schema: DataType) {
+    self.schema = schema
   }
 
   func rdd() throws {
@@ -87,6 +94,8 @@ public struct DataFrame: Sendable {
 
   // TODO: Show the real data
   public func show() async throws {
+    let counter = Atomic(Int64(0))
+
     try await withGRPCClient(
       transport: .http2NIOPosix(
         target: .dns(host: spark.client.host, port: spark.client.port),
@@ -97,13 +106,25 @@ public struct DataFrame: Sendable {
       try await service.executePlan(spark.client.getExecutePlanRequest(spark.sessionID, plan)) {
         response in
         for try await m in response.messages {
+          if m.hasSchema {
+            await self.setSchema(m.schema)
+          }
           if !m.arrowBatch.data.isEmpty {
-            for _ in 0..<m.arrowBatch.rowCount {
-              print("")
-            }
+            counter.add(m.arrowBatch.rowCount, ordering: .relaxed)
           }
         }
       }
+    }
+    if let schema = self.schema {
+      var columns: [TextTableColumn] = []
+      for f in schema.struct.fields {
+        columns.append(TextTableColumn(header: f.name))
+      }
+      var table = TextTable(columns: columns)
+      for _ in 1...(counter.load(ordering: .relaxed)) {
+        table.addRow(values: [""])
+      }
+      print(table.render())
     }
   }
 }
