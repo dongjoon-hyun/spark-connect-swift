@@ -44,7 +44,7 @@ public actor DataFrame: Sendable {
     self.schema = schema
   }
 
-  func rdd() throws {
+  public func rdd() throws {
     // SQLSTATE: 0A000
     // [UNSUPPORTED_CONNECT_FEATURE.RDD]
     // Feature is not supported in Spark Connect: Resilient Distributed Datasets (RDDs).
