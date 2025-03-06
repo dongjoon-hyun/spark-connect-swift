@@ -28,11 +28,13 @@ public actor SparkSession {
   public static let builder: Builder = Builder()
 
   let client: Client
+  let conf: RuntimeConf
 
   init(_ connection: String, _ userID: String? = nil) {
     let processInfo = ProcessInfo.processInfo
     let userName = processInfo.environment["SPARK_USER"] ?? processInfo.userName
     self.client = Client(remote: connection, user: userID ?? userName)
+    self.conf = RuntimeConf(self.client)
   }
 
   // This is supposed to be overwritten by the Spark Connect Servier's Spark version
@@ -61,10 +63,6 @@ public actor SparkSession {
 
   public func stop() async {
     await client.stop()
-  }
-
-  public func conf() -> RuntimeConf {
-    return RuntimeConf(self.client)
   }
 
   public func range(_ end: Int64) async throws -> DataFrame {
