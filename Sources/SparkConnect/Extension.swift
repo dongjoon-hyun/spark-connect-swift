@@ -34,6 +34,12 @@ extension String {
     context.userName = self
     return context
   }
+
+  var toKeyValue: Spark_Connect_KeyValue {
+    var keyValue = Spark_Connect_KeyValue()
+    keyValue.key = self
+    return keyValue
+  }
 }
 
 extension [String: String] {

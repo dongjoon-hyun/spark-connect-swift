@@ -59,8 +59,12 @@ public actor SparkSession {
     }
   }
 
-  public func stop() {
-    client.stop()
+  public func stop() async {
+    await client.stop()
+  }
+
+  public func conf() -> RuntimeConf {
+    return RuntimeConf(self.client)
   }
 
   public func range(_ end: Int64) async throws -> DataFrame {
@@ -109,7 +113,7 @@ public actor SparkSession {
       let session = SparkSession(sparkConf["spark.remote"] ?? "sc://localhost:15002")
       let response = try await session.client.connect(session.sessionID)
       await session.setVersion(response.sparkVersion.version)
-      let isSuccess = try await session.client.setConf(sessionID: session.sessionID, map: sparkConf)
+      let isSuccess = try await session.client.setConf(map: sparkConf)
       assert(isSuccess)
       return session
     }

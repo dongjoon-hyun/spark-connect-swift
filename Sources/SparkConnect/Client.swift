@@ -33,13 +33,13 @@ typealias SparkConnectService = Spark_Connect_SparkConnectService
 typealias UserContext = Spark_Connect_UserContext
 
 // Conceptually the remote spark session that communicates with the server
-struct Client {
+public actor Client {
   let clientType: String = "swift"
   let url: URL
   let host: String
   let port: Int
   let userContext: UserContext
-  let sessionID: String? = nil
+  var sessionID: String? = nil
 
   init(remote: String, user: String) {
     self.url = URL(string: remote)!
@@ -60,6 +60,7 @@ struct Client {
         transportSecurity: .plaintext
       )
     ) { client in
+      self.sessionID = sessionID
       let service = SparkConnectService.Client(wrapping: client)
       let version = AnalyzePlanRequest.SparkVersion()
       var request = AnalyzePlanRequest()
@@ -81,7 +82,7 @@ struct Client {
     return request
   }
 
-  func setConf(sessionID: String, map: [String: String]) async throws -> Bool {
+  func setConf(map: [String: String]) async throws -> Bool {
     try await withGRPCClient(
       transport: .http2NIOPosix(
         target: .dns(host: self.host, port: self.port),
@@ -92,19 +93,65 @@ struct Client {
       var request = getConfigRequestSet(map: map)
       request.clientType = clientType
       request.userContext = userContext
-      request.sessionID = sessionID
+      request.sessionID = self.sessionID!
       let _ = try await service.config(request)
       return true
     }
   }
 
-  func getConfigRequestGet(keys: [String]) async throws -> ConfigRequest {
+  func getConfigRequestGet(keys: [String]) -> ConfigRequest {
     var request = ConfigRequest()
     request.operation = ConfigRequest.Operation()
     var get = ConfigRequest.Get()
     get.keys = keys
     request.operation.opType = .get(get)
     return request
+  }
+
+  func getConf(_ key: String) async throws -> String {
+    try await withGRPCClient(
+      transport: .http2NIOPosix(
+        target: .dns(host: self.host, port: self.port),
+        transportSecurity: .plaintext
+      )
+    ) { client in
+      let service = SparkConnectService.Client(wrapping: client)
+      var request = getConfigRequestGet(keys: [key])
+      request.clientType = clientType
+      request.userContext = userContext
+      request.sessionID = self.sessionID!
+      let response = try await service.config(request)
+      return response.pairs[0].value
+    }
+  }
+
+  func getConfigRequestGetAll() -> ConfigRequest {
+    var request = ConfigRequest()
+    request.operation = ConfigRequest.Operation()
+    let getAll = ConfigRequest.GetAll()
+    request.operation.opType = .getAll(getAll)
+    return request
+  }
+
+  func getConfAll() async throws -> [String: String] {
+    try await withGRPCClient(
+      transport: .http2NIOPosix(
+        target: .dns(host: self.host, port: self.port),
+        transportSecurity: .plaintext
+      )
+    ) { client in
+      let service = SparkConnectService.Client(wrapping: client)
+      var request = getConfigRequestGetAll()
+      request.clientType = clientType
+      request.userContext = userContext
+      request.sessionID = self.sessionID!
+      let response = try await service.config(request)
+      var map = [String: String]()
+      for pair in response.pairs {
+        map[pair.key] = pair.value
+      }
+      return map
+    }
   }
 
   func getPlanRange(_ start: Int64, _ end: Int64, _ step: Int64) -> Plan {
