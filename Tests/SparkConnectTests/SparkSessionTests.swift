@@ -16,6 +16,7 @@
 // specific language governing permissions and limitations
 // under the License.
 //
+import Foundation
 import Testing
 
 @testable import SparkConnect
@@ -29,13 +30,20 @@ struct SparkSessionTests {
     }
     await spark.stop()
   }
-  
+
   @Test
   func stop() async throws {
     let spark = try await SparkSession.builder.getOrCreate()
     await spark.stop()
   }
-  
+
+  @Test func userContext() async throws {
+    let spark = try await SparkSession.builder.getOrCreate()
+    let defaultUserContext = ProcessInfo.processInfo.userName.toUserContext
+    #expect(await spark.client.userContext == defaultUserContext)
+    await spark.stop()
+  }
+
   @Test
   func version() async throws {
     let spark = try await SparkSession.builder.getOrCreate()

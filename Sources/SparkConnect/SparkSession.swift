@@ -29,7 +29,9 @@ public actor SparkSession {
   let client: Client
 
   init(_ connection: String, _ userID: String? = nil) {
-    self.client = Client(remote: connection, user: userID ?? "")
+    let processInfo = ProcessInfo.processInfo
+    let userName = processInfo.environment["SPARK_USER"] ?? processInfo.userName
+    self.client = Client(remote: connection, user: userID ?? userName)
   }
 
   // This is supposed to be overwritten by the Spark Connect Servier's Spark version
@@ -38,8 +40,6 @@ public actor SparkSession {
   func setVersion(_ version: String) {
     self.version = version
   }
-
-  var userContext: UserContext? = nil
 
   var sessionID: String = UUID().uuidString
 

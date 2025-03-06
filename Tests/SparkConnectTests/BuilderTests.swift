@@ -36,7 +36,7 @@ struct BuilderTests {
     // Don't try to connect
     let builder = await SparkSession.builder.remote("sc://spark:1234")
     #expect(await builder.sparkConf["spark.remote"] == "sc://spark:1234")
-    await builder.clear()
+    _ = await builder.clear()
   }
 
   @Test
