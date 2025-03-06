@@ -1,5 +1,7 @@
 # Apache Spark Connect Client for Swift
 
+[![GitHub Actions Build](https://github.com/dongjoon-hyun/spark-connect-swift/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/dongjoon-hyun/spark-connect-swift/blob/main/.github/workflows/build_and_test.yml)
+
 This is an experimental Swift library to show how to connect to a remote Apache Spark Connect Server and run SQL statements to manipulate remote data.
 
 So far, this library project is tracking the upstream changes like the [Apache Spark](https://spark.apache.org) 4.0.0 RC2 release and [Apache Arrow](https://arrow.apache.org) project's Swift-support.
