@@ -16,6 +16,7 @@
 // specific language governing permissions and limitations
 // under the License.
 //
+
 extension String {
   var toSparkConnectPlan: Spark_Connect_Plan {
     var sql = Spark_Connect_SQL()

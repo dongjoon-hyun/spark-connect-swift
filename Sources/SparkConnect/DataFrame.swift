@@ -1,4 +1,3 @@
-import Atomics
 //
 // Licensed to the Apache Software Foundation (ASF) under one
 // or more contributor license agreements.  See the NOTICE file
@@ -17,6 +16,7 @@ import Atomics
 // specific language governing permissions and limitations
 // under the License.
 //
+import Atomics
 import Foundation
 import GRPCCore
 import GRPCNIOTransportHTTP2

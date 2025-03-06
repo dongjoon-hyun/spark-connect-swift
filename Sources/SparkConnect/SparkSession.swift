@@ -16,6 +16,7 @@
 // specific language governing permissions and limitations
 // under the License.
 //
+
 import Foundation
 import GRPCCore
 import GRPCNIOTransportHTTP2
@@ -82,7 +83,7 @@ public actor SparkSession {
   public actor Builder {
     var sparkConf: [String: String] = [:]
 
-    func config(_ key: String, _ value: String) -> Builder {
+    public func config(_ key: String, _ value: String) -> Builder {
       sparkConf[key] = value
       return self
     }
@@ -96,7 +97,7 @@ public actor SparkSession {
       return config("spark.remote", url)
     }
 
-    func appName(_ name: String) -> Builder {
+    public func appName(_ name: String) -> Builder {
       return config("spark.app.name", name)
     }
 
