@@ -28,7 +28,7 @@ public actor SparkSession {
   public static let builder: Builder = Builder()
 
   let client: Client
-  let conf: RuntimeConf
+  public let conf: RuntimeConf
 
   init(_ connection: String, _ userID: String? = nil) {
     let processInfo = ProcessInfo.processInfo
