@@ -21,6 +21,7 @@ import Foundation
 import GRPCCore
 import GRPCNIOTransportHTTP2
 import GRPCProtobuf
+import NIOCore
 import SwiftyTextTable
 import Synchronization
 
@@ -29,6 +30,7 @@ public actor DataFrame: Sendable {
   var spark: SparkSession
   var plan: Plan
   var schema: DataType? = nil
+  var batches: [RecordBatch] = [RecordBatch]()
 
   init(spark: SparkSession, plan: Plan) async throws {
     self.spark = spark
@@ -42,6 +44,10 @@ public actor DataFrame: Sendable {
 
   private func setSchema(_ schema: DataType) {
     self.schema = schema
+  }
+
+  private func addBathes(_ batches: [RecordBatch]) {
+    self.batches.append(contentsOf: batches)
   }
 
   public func rdd() throws {
@@ -93,10 +99,7 @@ public actor DataFrame: Sendable {
     throw SparkConnectError.UnsupportedOperationException
   }
 
-  // TODO: Show the real data
   public func show() async throws {
-    let counter = Atomic(Int64(0))
-
     try await withGRPCClient(
       transport: .http2NIOPosix(
         target: .dns(host: spark.client.host, port: spark.client.port),
@@ -108,22 +111,59 @@ public actor DataFrame: Sendable {
         response in
         for try await m in response.messages {
           if m.hasSchema {
+            // The original schema should arrive before ArrowBatches
             await self.setSchema(m.schema)
           }
-          if !m.arrowBatch.data.isEmpty {
-            counter.add(m.arrowBatch.rowCount, ordering: .relaxed)
+          let ipcStreamBytes = m.arrowBatch.data
+          if !ipcStreamBytes.isEmpty {
+            let IPC_CONTINUATION_TOKEN = Int32(-1)
+            // Schema
+            assert(ipcStreamBytes[0..<4].int32 == IPC_CONTINUATION_TOKEN)
+            let schemaSize = Int64(ipcStreamBytes[4..<8].int32)
+            let schema = Data(ipcStreamBytes[8..<(8 + schemaSize)])
+
+            // Arrow IPC Data
+            assert(
+              ipcStreamBytes[(8 + schemaSize)..<(8 + schemaSize + 4)].int32
+                == IPC_CONTINUATION_TOKEN)
+            var pos: Int64 = 8 + schemaSize + 4
+            let dataHeaderSize = Int64(ipcStreamBytes[pos..<(pos + 4)].int32)
+            pos += 4
+            let dataHeader = Data(ipcStreamBytes[pos..<(pos + dataHeaderSize)])
+            pos += dataHeaderSize
+            let dataBodySize = Int64(ipcStreamBytes.count) - pos - 8
+            let dataBody = Data(ipcStreamBytes[pos..<(pos + dataBodySize)])
+
+            // Read ArrowBatches
+            let reader = ArrowReader()
+            let arrowResult = ArrowReader.makeArrowReaderResult()
+            _ = reader.fromMessage(schema, dataBody: Data(), result: arrowResult)
+            _ = reader.fromMessage(dataHeader, dataBody: dataBody, result: arrowResult)
+            await self.addBathes(arrowResult.batches)
           }
         }
       }
     }
+
     if let schema = self.schema {
       var columns: [TextTableColumn] = []
       for f in schema.struct.fields {
         columns.append(TextTableColumn(header: f.name))
       }
       var table = TextTable(columns: columns)
-      for _ in 1...(counter.load(ordering: .relaxed)) {
-        table.addRow(values: [""])
+      for batch in self.batches {
+        for i in 0..<batch.length {
+          var values: [String] = []
+          for column in batch.columns {
+            let str = column.array as! AsString
+            if column.data.isNull(i) {
+              values.append("NULL")
+            } else {
+              values.append(str.asString(i))
+            }
+          }
+          table.addRow(values: values)
+        }
       }
       print(table.render())
     }

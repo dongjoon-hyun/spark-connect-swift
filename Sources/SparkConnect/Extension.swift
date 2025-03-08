@@ -17,6 +17,8 @@
 // under the License.
 //
 
+import Foundation
+
 extension String {
   var toSparkConnectPlan: Spark_Connect_Plan {
     var sql = Spark_Connect_SQL()
@@ -53,4 +55,8 @@ extension [String: String] {
     }
     return array
   }
+}
+
+extension Data {
+  var int32: Int32 { withUnsafeBytes({ $0.load(as: Int32.self) }) }
 }

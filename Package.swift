@@ -38,6 +38,7 @@ let package = Package(
     .package(url: "https://github.com/grpc/grpc-swift-protobuf.git", from: "1.0.0"),
     .package(url: "https://github.com/grpc/grpc-swift-nio-transport.git", from: "1.0.0"),
     .package(url: "https://github.com/scottrhoyt/SwiftyTextTable.git", from: "0.9.0"),
+    .package(url: "https://github.com/google/flatbuffers.git", branch: "v24.3.7"),
   ],
   targets: [
     .target(
@@ -47,6 +48,7 @@ let package = Package(
         .product(name: "GRPCProtobuf", package: "grpc-swift-protobuf"),
         .product(name: "GRPCNIOTransportHTTP2", package: "grpc-swift-nio-transport"),
         .product(name: "SwiftyTextTable", package: "SwiftyTextTable"),
+        .product(name: "FlatBuffers", package: "flatbuffers"),
       ]
     ),
     .testTarget(

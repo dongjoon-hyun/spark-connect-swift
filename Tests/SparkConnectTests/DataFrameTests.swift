@@ -76,7 +76,9 @@ struct DataFrameTests {
   @Test
   func show() async throws {
     let spark = try await SparkSession.builder.getOrCreate()
-    try await spark.sql("SELECT * FROM VALUES (1, 2), (3, 4)").show()
+    try await spark.sql("SHOW TABLES").show()
+    try await spark.sql("SELECT * FROM VALUES (1, 2)").show()
+    try await spark.sql("SELECT * FROM VALUES ('abc', 'def'), ('ghi', 'jkl')").show()
     await spark.stop()
   }
 }
