@@ -71,7 +71,8 @@ public actor DataFrame: Sendable {
     throw SparkConnectError.UnsupportedOperationException
   }
 
-  // We cannot expose the internal type `Spark_Connect_DataType`.
+  /// Return a `JSON` string of data type because we cannot expose the internal type ``DataType``.
+  /// - Returns: a `JSON` string.
   public func schema() async throws -> String {
     var dataType: String? = nil
 
@@ -89,6 +90,8 @@ public actor DataFrame: Sendable {
     return dataType!
   }
 
+  /// Return the total number of rows.
+  /// - Returns: a `Int64` value.
   public func count() async throws -> Int64 {
     let counter = Atomic(Int64(0))
 
@@ -109,6 +112,7 @@ public actor DataFrame: Sendable {
     return counter.load(ordering: .relaxed)
   }
 
+  /// Execute the plan and try to fill `schema` and `batches`.
   private func execute() async throws {
     try await withGRPCClient(
       transport: .http2NIOPosix(
@@ -156,10 +160,12 @@ public actor DataFrame: Sendable {
     }
   }
 
+  /// This is designed not to support this feature in order to simplify the Swift client.
   public func collect() async throws {
     throw SparkConnectError.UnsupportedOperationException
   }
 
+  /// Execute the plan and show the result.
   public func show() async throws {
     try await execute()
 
