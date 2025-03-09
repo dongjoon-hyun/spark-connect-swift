@@ -109,11 +109,7 @@ public actor DataFrame: Sendable {
     return counter.load(ordering: .relaxed)
   }
 
-  public func collect() async throws {
-    throw SparkConnectError.UnsupportedOperationException
-  }
-
-  public func show() async throws {
+  private func execute() async throws {
     try await withGRPCClient(
       transport: .http2NIOPosix(
         target: .dns(host: spark.client.host, port: spark.client.port),
@@ -158,6 +154,14 @@ public actor DataFrame: Sendable {
         }
       }
     }
+  }
+
+  public func collect() async throws {
+    throw SparkConnectError.UnsupportedOperationException
+  }
+
+  public func show() async throws {
+    try await execute()
 
     if let schema = self.schema {
       var columns: [TextTableColumn] = []
