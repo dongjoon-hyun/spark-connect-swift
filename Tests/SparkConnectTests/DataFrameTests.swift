@@ -62,6 +62,13 @@ struct DataFrameTests {
   }
 
   @Test
+  func countNull() async throws {
+    let spark = try await SparkSession.builder.getOrCreate()
+    #expect(try await spark.sql("SELECT null").count() == 1)
+    await spark.stop()
+  }
+
+  @Test
   func table() async throws {
     let spark = try await SparkSession.builder.getOrCreate()
     #expect(try await spark.sql("DROP TABLE IF EXISTS t").count() == 0)
@@ -81,6 +88,15 @@ struct DataFrameTests {
     try await spark.sql("SELECT * FROM VALUES (true, false)").show()
     try await spark.sql("SELECT * FROM VALUES (1, 2)").show()
     try await spark.sql("SELECT * FROM VALUES ('abc', 'def'), ('ghi', 'jkl')").show()
+    await spark.stop()
+  }
+
+  @Test
+  func showNull() async throws {
+    let spark = try await SparkSession.builder.getOrCreate()
+    try await spark.sql(
+      "SELECT * FROM VALUES (1, true, 'abc'), (null, null, null), (3, false, 'def')"
+    ).show()
     await spark.stop()
   }
 }
