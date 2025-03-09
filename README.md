@@ -73,13 +73,14 @@ let statements = [
   "DROP TABLE IF EXISTS t",
   "CREATE TABLE IF NOT EXISTS t(a INT)",
   "INSERT INTO t VALUES (1), (2), (3)",
-  "SELECT * FROM t",
 ]
 
 for s in statements {
   print("EXECUTE: \(s)")
-  try await spark.sql(s).show()
+  _ = try await spark.sql(s).count()
 }
+print("SELECT * FROM t")
+try await spark.sql("SELECT * FROM t").show()
 
 await spark.stop()
 ```
