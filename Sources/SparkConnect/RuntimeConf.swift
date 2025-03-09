@@ -17,6 +17,7 @@
 // under the License.
 //
 
+/// User-facing configuration API, accessible through `SparkSession.conf`.
 public actor RuntimeConf {
   private let client: Client
 

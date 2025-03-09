@@ -25,12 +25,12 @@ import NIOCore
 import SwiftyTextTable
 import Synchronization
 
-// A DataFrame which supports only SQL queries
+/// A DataFrame which supports only SQL queries
 public actor DataFrame: Sendable {
   var spark: SparkSession
   var plan: Plan
   var schema: DataType? = nil
-  var batches: [RecordBatch] = [RecordBatch]()
+  private var batches: [RecordBatch] = [RecordBatch]()
 
   init(spark: SparkSession, plan: Plan) async throws {
     self.spark = spark

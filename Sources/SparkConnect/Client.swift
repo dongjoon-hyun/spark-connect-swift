@@ -15,6 +15,7 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
+
 import Foundation
 import GRPCCore
 import GRPCNIOTransportHTTP2
@@ -32,7 +33,7 @@ typealias Relation = Spark_Connect_Relation
 typealias SparkConnectService = Spark_Connect_SparkConnectService
 typealias UserContext = Spark_Connect_UserContext
 
-// Conceptually the remote spark session that communicates with the server
+/// Conceptually the remote spark session that communicates with the server
 public actor Client {
   let clientType: String = "swift"
   let url: URL

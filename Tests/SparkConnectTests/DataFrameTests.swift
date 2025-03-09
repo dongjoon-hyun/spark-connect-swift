@@ -21,6 +21,7 @@ import Testing
 
 @testable import SparkConnect
 
+/// A test suite for `DataFrame`
 struct DataFrameTests {
   @Test
   func rdd() async throws {
@@ -77,6 +78,7 @@ struct DataFrameTests {
   func show() async throws {
     let spark = try await SparkSession.builder.getOrCreate()
     try await spark.sql("SHOW TABLES").show()
+    try await spark.sql("SELECT * FROM VALUES (true, false)").show()
     try await spark.sql("SELECT * FROM VALUES (1, 2)").show()
     try await spark.sql("SELECT * FROM VALUES ('abc', 'def'), ('ghi', 'jkl')").show()
     await spark.stop()

@@ -23,6 +23,8 @@ import GRPCNIOTransportHTTP2
 import GRPCProtobuf
 import Synchronization
 
+/// The entry point to programming Spark with `DataFrame` API.
+/// Use the builder to get a session.
 public actor SparkSession {
 
   public static let builder: Builder = Builder()
@@ -82,6 +84,7 @@ public actor SparkSession {
   struct SparkContext {
   }
 
+  /// A builder to create `SparkSession`
   public actor Builder {
     var sparkConf: [String: String] = [:]
 

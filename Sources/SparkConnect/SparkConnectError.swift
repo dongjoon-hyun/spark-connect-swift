@@ -17,6 +17,7 @@
 // under the License.
 //
 
+/// A enum for `SparkConnect` package errors
 enum SparkConnectError: Error {
   case UnsupportedOperationException
 }

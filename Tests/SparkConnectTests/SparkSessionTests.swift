@@ -22,6 +22,7 @@ import Testing
 
 @testable import SparkConnect
 
+/// A test suite for `SparkSession`
 struct SparkSessionTests {
   @Test
   func sparkContext() async throws {

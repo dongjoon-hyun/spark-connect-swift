@@ -21,6 +21,7 @@ import Testing
 
 @testable import SparkConnect
 
+/// A test suite for `SparkSession.Builder`
 @Suite(.serialized)
 struct BuilderTests {
   @Test
