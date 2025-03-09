@@ -21,18 +21,29 @@
 public actor RuntimeConf {
   private let client: Client
 
+  /// Create a `RuntimeConf` instance with the given client.
+  /// - Parameter client: A client to talk to the Spark Connect server.
   init(_ client: Client) {
     self.client = client
   }
 
+  /// Set a new configuration.
+  /// - Parameters:
+  ///   - key: A string for the configuration key.
+  ///   - value: A string for the configuration value.
   public func set(_ key: String, _ value: String) async throws {
     _ = try await client.setConf(map: [key: value])
   }
 
+  /// Get a configuration.
+  /// - Parameter key: A string for the configuration look-up.
+  /// - Returns: A string for the configuration.
   public func get(_ key: String) async throws -> String {
     return try await client.getConf(key)
   }
 
+  /// Get all configurations.
+  /// - Returns: A map of configuration key-values.
   public func getAll() async throws -> [String: String] {
     return try await client.getConfAll()
   }

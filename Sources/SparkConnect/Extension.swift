@@ -20,35 +20,39 @@
 import Foundation
 
 extension String {
-  var toSparkConnectPlan: Spark_Connect_Plan {
+  /// Get a `Plan` instance from a string.
+  var toSparkConnectPlan: Plan {
     var sql = Spark_Connect_SQL()
     sql.query = self
-    var relation = Spark_Connect_Relation()
+    var relation = Relation()
     relation.sql = sql
-    var plan = Spark_Connect_Plan()
-    plan.opType = Spark_Connect_Plan.OneOf_OpType.root(relation)
+    var plan = Plan()
+    plan.opType = Plan.OneOf_OpType.root(relation)
     return plan
   }
 
-  var toUserContext: Spark_Connect_UserContext {
-    var context = Spark_Connect_UserContext()
+  /// Get a `UserContext` instance from a string.
+  var toUserContext: UserContext {
+    var context = UserContext()
     context.userID = self
     context.userName = self
     return context
   }
 
-  var toKeyValue: Spark_Connect_KeyValue {
-    var keyValue = Spark_Connect_KeyValue()
+  /// Get a `KeyValue` instance by using a string as the key.
+  var toKeyValue: KeyValue {
+    var keyValue = KeyValue()
     keyValue.key = self
     return keyValue
   }
 }
 
 extension [String: String] {
-  var toSparkConnectKeyValue: [Spark_Connect_KeyValue] {
-    var array = [Spark_Connect_KeyValue]()
+  /// Get an array of`KeyValue`from `[String: String]`.
+  var toSparkConnectKeyValue: [KeyValue] {
+    var array = [KeyValue]()
     for keyValue in self {
-      var kv = Spark_Connect_KeyValue()
+      var kv = KeyValue()
       kv.key = keyValue.key
       kv.value = keyValue.value
       array.append(kv)
@@ -58,5 +62,6 @@ extension [String: String] {
 }
 
 extension Data {
+  /// Get an `Int32` value from unsafe 4 bytes.
   var int32: Int32 { withUnsafeBytes({ $0.load(as: Int32.self) }) }
 }

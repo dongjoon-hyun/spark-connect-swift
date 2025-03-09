@@ -28,6 +28,7 @@ typealias ConfigRequest = Spark_Connect_ConfigRequest
 typealias DataType = Spark_Connect_DataType
 typealias ExecutePlanRequest = Spark_Connect_ExecutePlanRequest
 typealias Plan = Spark_Connect_Plan
+typealias KeyValue = Spark_Connect_KeyValue
 typealias Range = Spark_Connect_Range
 typealias Relation = Spark_Connect_Relation
 typealias SparkConnectService = Spark_Connect_SparkConnectService
@@ -42,6 +43,10 @@ public actor Client {
   let userContext: UserContext
   var sessionID: String? = nil
 
+  /// Create a client to use GRPCClient.
+  /// - Parameters:
+  ///   - remote: A string to connect `Spark Connect` server.
+  ///   - user: A string for the user ID of this connection.
   init(remote: String, user: String) {
     self.url = URL(string: remote)!
     self.host = url.host() ?? "localhost"
@@ -49,11 +54,16 @@ public actor Client {
     self.userContext = user.toUserContext
   }
 
+  /// Stop the connection. Currently, this API is no-op because we don't reuse the connection.
   func stop() {
   }
 
   private var service: SparkConnectService.Client<HTTP2ClientTransport.Posix>? = nil
 
+  /// Connect to the `Spark Connect` server with the given session ID string.
+  /// As a test connection, this sends the server `SparkVersion` request.
+  /// - Parameter sessionID: A string for the session ID.
+  /// - Returns: An `AnalyzePlanResponse` instance for `SparkVersion`
   func connect(_ sessionID: String) async throws -> AnalyzePlanResponse {
     try await withGRPCClient(
       transport: .http2NIOPosix(
@@ -74,6 +84,9 @@ public actor Client {
     }
   }
 
+  /// Create a ``ConfigRequest`` instance for `Set` operation.
+  /// - Parameter map: A map of key-value string pairs.
+  /// - Returns: A ``ConfigRequest`` instance.
   func getConfigRequestSet(map: [String: String]) -> ConfigRequest {
     var request = ConfigRequest()
     request.operation = ConfigRequest.Operation()
@@ -83,6 +96,9 @@ public actor Client {
     return request
   }
 
+  /// Request the server to set a map of configurations for this session.
+  /// - Parameter map: A map of key-value pairs to set.
+  /// - Returns: Always return true.
   func setConf(map: [String: String]) async throws -> Bool {
     try await withGRPCClient(
       transport: .http2NIOPosix(
@@ -100,6 +116,9 @@ public actor Client {
     }
   }
 
+  /// Create a ``ConfigRequest`` instance for `Get` operation.
+  /// - Parameter keys: An array of keys to get.
+  /// - Returns: A `ConfigRequest` instance.
   func getConfigRequestGet(keys: [String]) -> ConfigRequest {
     var request = ConfigRequest()
     request.operation = ConfigRequest.Operation()
@@ -109,6 +128,9 @@ public actor Client {
     return request
   }
 
+  /// Request the server to get a value of the given key.
+  /// - Parameter key: A string for key to look up.
+  /// - Returns: A string for the value of the key.
   func getConf(_ key: String) async throws -> String {
     try await withGRPCClient(
       transport: .http2NIOPosix(
@@ -126,6 +148,8 @@ public actor Client {
     }
   }
 
+  /// Create a ``ConfigRequest`` for `GetAll` operation.
+  /// - Returns: <#description#>
   func getConfigRequestGetAll() -> ConfigRequest {
     var request = ConfigRequest()
     request.operation = ConfigRequest.Operation()
@@ -134,6 +158,8 @@ public actor Client {
     return request
   }
 
+  /// Request the server to get all configurations.
+  /// - Returns: A map of key-value pairs.
   func getConfAll() async throws -> [String: String] {
     try await withGRPCClient(
       transport: .http2NIOPosix(
@@ -155,6 +181,12 @@ public actor Client {
     }
   }
 
+  /// Create a `Plan` instance for `Range` relation.
+  /// - Parameters:
+  ///   - start: A start of the range.
+  ///   - end: A end (exclusive) of the range.
+  ///   - step: A step value for the range from `start` to `end`.
+  /// - Returns: <#description#>
   func getPlanRange(_ start: Int64, _ end: Int64, _ step: Int64) -> Plan {
     var range = Range()
     range.start = start
@@ -167,6 +199,12 @@ public actor Client {
     return plan
   }
 
+  /// Create a ``ExecutePlanRequest`` instance with the given session ID and plan.
+  /// The operation ID is created by UUID.
+  /// - Parameters:
+  ///   - sessionID: A string for the existing session ID.
+  ///   - plan: A plan to execute.
+  /// - Returns: An ``ExecutePlanRequest`` instance.
   func getExecutePlanRequest(_ sessionID: String, _ plan: Plan) async
     -> ExecutePlanRequest
   {
@@ -179,6 +217,11 @@ public actor Client {
     return request
   }
 
+  /// Create a ``AnalyzePlanRequest`` instance with the given session ID and plan.
+  /// - Parameters:
+  ///   - sessionID: A string for the existing session ID.
+  ///   - plan: A plan to analyze.
+  /// - Returns: An ``AnalyzePlanRequest`` instance
   func getAnalyzePlanRequest(_ sessionID: String, _ plan: Plan) async
     -> AnalyzePlanRequest
   {

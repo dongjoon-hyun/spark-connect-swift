@@ -32,24 +32,38 @@ public actor DataFrame: Sendable {
   var schema: DataType? = nil
   private var batches: [RecordBatch] = [RecordBatch]()
 
+  /// Create a new `DataFrame`instance with the given Spark session and plan.
+  /// - Parameters:
+  ///   - spark: A ``SparkSession`` instance to use.
+  ///   - plan: A plan to execute.
   init(spark: SparkSession, plan: Plan) async throws {
     self.spark = spark
     self.plan = plan
   }
 
+  /// Create a new `DataFrame` instance with the given SparkSession and a SQL statement.
+  /// - Parameters:
+  ///   - spark: A `SparkSession` instance to use.
+  ///   - sqlText: A SQL statement.
   init(spark: SparkSession, sqlText: String) async throws {
     self.spark = spark
     self.plan = sqlText.toSparkConnectPlan
   }
 
+  /// Set the schema. This is used to store the analized schema response from `Spark Connect` server.
+  /// - Parameter schema: <#schema description#>
   private func setSchema(_ schema: DataType) {
     self.schema = schema
   }
 
+  /// Add `Apache Arrow`'s `RecordBatch`s to the intenal array.
+  /// - Parameter batches: A ``RecordBatch`` instance.
   private func addBathes(_ batches: [RecordBatch]) {
     self.batches.append(contentsOf: batches)
   }
 
+  /// A method to access the underlying Spark's `RDD`.
+  /// In `Spark Connect`, this feature is not allowed by design.
   public func rdd() throws {
     // SQLSTATE: 0A000
     // [UNSUPPORTED_CONNECT_FEATURE.RDD]

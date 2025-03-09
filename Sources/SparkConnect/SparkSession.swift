@@ -23,8 +23,13 @@ import GRPCNIOTransportHTTP2
 import GRPCProtobuf
 import Synchronization
 
-/// The entry point to programming Spark with `DataFrame` API.
+/// The entry point to programming Spark with ``DataFrame`` API.
+///
 /// Use the builder to get a session.
+///
+/// ```swift
+/// let spark = try await SparkSession.builder.getOrCreate()
+/// ```
 public actor SparkSession {
 
   public static let builder: Builder = Builder()
@@ -32,6 +37,10 @@ public actor SparkSession {
   let client: Client
   public let conf: RuntimeConf
 
+  /// Create a session that uses the specified connection string and userID.
+  /// - Parameters:
+  ///   - connection: a string in a patter, `sc://{host}:{port}`
+  ///   - userID: an optional user ID. If absent, `SPARK_USER` environment or ``ProcessInfo.processInfo.userName`` is used.
   init(_ connection: String, _ userID: String? = nil) {
     let processInfo = ProcessInfo.processInfo
     let userName = processInfo.environment["SPARK_USER"] ?? processInfo.userName
@@ -39,21 +48,26 @@ public actor SparkSession {
     self.conf = RuntimeConf(self.client)
   }
 
-  // This is supposed to be overwritten by the Spark Connect Servier's Spark version
+  /// The Spark version of Spark Connect Servier. This is supposed to be overwritten during establishing connections.
   public var version: String = ""
 
   func setVersion(_ version: String) {
     self.version = version
   }
 
+  /// A randomly generated session ID
   var sessionID: String = UUID().uuidString
 
+  /// Get the current session ID
+  /// - Returns: the current session ID
   func getSessionID() -> String {
     sessionID
   }
 
+  /// A server-side generated session ID. This is supposed to be overwritten during establishing connections.
   var serverSideSessionID: String = ""
 
+  /// A variable for ``SparkContext``. This is designed to throw exceptions by Apache Spark.
   var sparkContext: SparkContext {
     get throws {
       // SQLSTATE: 0A000
@@ -63,6 +77,7 @@ public actor SparkSession {
     }
   }
 
+  /// Stop the current client.
   public func stop() async {
     await client.stop()
   }
@@ -75,41 +90,62 @@ public actor SparkSession {
     return try await DataFrame(spark: self, plan: client.getPlanRange(start, end, step))
   }
 
+  /// Create a ``DataFrame`` for the given SQL statement.
+  /// - Parameter sqlText: A SQL string.
+  /// - Returns: A ``DataFrame`` instance.
   public func sql(_ sqlText: String) async throws -> DataFrame {
     return try await DataFrame(spark: self, sqlText: sqlText)
   }
 
-  // Although this is `UNSUPPORTED_CONNECT_FEATURE.SESSION_SPARK_CONTEXT`,
-  // it's defined as the return type of `SparkSession.sparkContext` method.
+  /// This is defined as the return type of `SparkSession.sparkContext` method.
+  /// This is an empty `Struct` type because `sparkContext` method is designed to throw
+  /// `UNSUPPORTED_CONNECT_FEATURE.SESSION_SPARK_CONTEXT`.
   struct SparkContext {
   }
 
-  /// A builder to create `SparkSession`
+  /// A builder to create ``SparkSession``
   public actor Builder {
     var sparkConf: [String: String] = [:]
 
+    /// Set a new configuration.
+    /// - Parameters:
+    ///   - key: A string for the configuration key.
+    ///   - value: A string for the configuration value.
+    /// - Returns: self
     public func config(_ key: String, _ value: String) -> Builder {
       sparkConf[key] = value
       return self
     }
 
+    /// Remove all stored configurations.
+    /// - Returns: self
     func clear() -> Builder {
       sparkConf.removeAll()
       return self
     }
 
+    /// Set a url for remote connection.
+    /// - Parameter url: A connection string in a pattern, `sc://{host}:{post}`.
+    /// - Returns: self
     public func remote(_ url: String) -> Builder {
       return config("spark.remote", url)
     }
 
+    /// Set `appName` of this session.
+    /// - Parameter name: A string for application name
+    /// - Returns: self
     public func appName(_ name: String) -> Builder {
       return config("spark.app.name", name)
     }
 
+    /// Enable `Apache Hive` metastore support configuration.
+    /// - Returns: self
     func enableHiveSupport() -> Builder {
       return config("spark.sql.catalogImplementation", "hive")
     }
 
+    /// Create a new ``SparkSession``. If `spark.remote` is not given, `sc://localhost:15002` is used.
+    /// - Returns: A newly created `SparkSession`.
     func create() async throws -> SparkSession {
       let session = SparkSession(sparkConf["spark.remote"] ?? "sc://localhost:15002")
       let response = try await session.client.connect(session.sessionID)
@@ -119,6 +155,8 @@ public actor SparkSession {
       return session
     }
 
+    /// Create a ``SparkSession`` from the given configurations.
+    /// - Returns: A spark session.
     public func getOrCreate() async throws -> SparkSession {
       return try await create()
     }
