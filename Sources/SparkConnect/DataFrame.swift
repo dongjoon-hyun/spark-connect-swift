@@ -129,7 +129,7 @@ public actor DataFrame: Sendable {
             await self.setSchema(m.schema)
           }
           let ipcStreamBytes = m.arrowBatch.data
-          if !ipcStreamBytes.isEmpty {
+          if !ipcStreamBytes.isEmpty && m.arrowBatch.rowCount > 0 {
             let IPC_CONTINUATION_TOKEN = Int32(-1)
             // Schema
             assert(ipcStreamBytes[0..<4].int32 == IPC_CONTINUATION_TOKEN)
