@@ -87,5 +87,24 @@ try await spark.sql("SELECT * FROM t").show()
 await spark.stop()
 ```
 
+Run your Swift application.
+
+```
+$ swift run
+...
+Connected to Apache Spark 4.0.0 Server
+EXECUTE: DROP TABLE IF EXISTS t
+EXECUTE: CREATE TABLE IF NOT EXISTS t(a INT)
+EXECUTE: INSERT INTO t VALUES (1), (2), (3)
+SELECT * FROM t
++---+
+| a |
++---+
+| 2 |
+| 1 |
+| 3 |
++---+
+```
+
 You can find this example in the following repository.
 - https://github.com/dongjoon-hyun/spark-connect-swift-app
