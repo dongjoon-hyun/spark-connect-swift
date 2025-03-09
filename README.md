@@ -1,5 +1,9 @@
 # Apache Spark Connect Client for Swift
 
+[![Swift Version Compatibility](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fdongjoon-hyun%2Fspark-connect-swift%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/dongjoon-hyun/spark-connect-swift)
+
+[![Platform Compatibility](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fdongjoon-hyun%2Fspark-connect-swift%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/dongjoon-hyun/spark-connect-swift)
+
 [![GitHub Actions Build](https://github.com/dongjoon-hyun/spark-connect-swift/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/dongjoon-hyun/spark-connect-swift/blob/main/.github/workflows/build_and_test.yml)
 
 This is an experimental Swift library to show how to connect to a remote Apache Spark Connect Server and run SQL statements to manipulate remote data.
@@ -11,7 +15,7 @@ So far, this library project is tracking the upstream changes like the [Apache S
 - [Swift 6.0 (2024)](https://swift.org)
 - [gRPC Swift 2.0 (Jaunary 2025)](https://github.com/grpc/grpc-swift/releases/tag/2.0.0)
 - [gRPC Swift Protobuf 1.0 (January 2025)](https://github.com/grpc/grpc-swift-protobuf/releases/tag/1.0.0)
-- [gRPC Swift NIO Transport 1.0](https://github.com/grpc/grpc-swift-nio-transport/releases/tag/1.0.0)
+- [gRPC Swift NIO Transport 1.0 (January 2025)](https://github.com/grpc/grpc-swift-nio-transport/releases/tag/1.0.0)
 - [Apache Arrow Swift](https://github.com/apache/arrow/tree/main/swift)
 
 ## Run `Apache Spark 4.0.0 RC2 Connect Server`
