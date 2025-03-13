@@ -69,6 +69,77 @@ struct DataFrameTests {
   }
 
   @Test
+  func selectNone() async throws {
+    let spark = try await SparkSession.builder.getOrCreate()
+    let emptySchema = try await spark.range(1).select().schema()
+    #expect(emptySchema == #"{"struct":{}}"#)
+    await spark.stop()
+  }
+
+  @Test
+  func select() async throws {
+    let spark = try await SparkSession.builder.getOrCreate()
+    let schema = try await spark.range(1).select("id").schema()
+    #expect(
+      schema
+        == #"{"struct":{"fields":[{"name":"id","dataType":{"long":{}}}]}}"#
+    )
+    await spark.stop()
+  }
+
+  @Test
+  func selectMultipleColumns() async throws {
+    let spark = try await SparkSession.builder.getOrCreate()
+    let schema = try await spark.sql("SELECT * FROM VALUES (1, 2)").select("col2", "col1").schema()
+    #expect(
+      schema
+        == #"{"struct":{"fields":[{"name":"col2","dataType":{"integer":{}}},{"name":"col1","dataType":{"integer":{}}}]}}"#
+    )
+    await spark.stop()
+  }
+
+  @Test
+  func selectInvalidColumn() async throws {
+    let spark = try await SparkSession.builder.getOrCreate()
+    try await #require(throws: Error.self) {
+      let _ = try await spark.range(1).select("invalid").schema()
+    }
+    await spark.stop()
+  }
+
+  @Test
+  func limit() async throws {
+    let spark = try await SparkSession.builder.getOrCreate()
+    #expect(try await spark.range(10).limit(0).count() == 0)
+    #expect(try await spark.range(10).limit(1).count() == 1)
+    #expect(try await spark.range(10).limit(2).count() == 2)
+    #expect(try await spark.range(10).limit(15).count() == 10)
+    await spark.stop()
+  }
+
+  @Test
+  func isEmpty() async throws {
+    let spark = try await SparkSession.builder.getOrCreate()
+    #expect(try await spark.range(0).isEmpty())
+    #expect(!(try await spark.range(1).isEmpty()))
+    await spark.stop()
+  }
+
+  @Test
+  func sort() async throws {
+    let spark = try await SparkSession.builder.getOrCreate()
+    #expect(try await spark.range(10).sort("id").count() == 10)
+    await spark.stop()
+  }
+
+  @Test
+  func orderBy() async throws {
+    let spark = try await SparkSession.builder.getOrCreate()
+    #expect(try await spark.range(10).orderBy("id").count() == 10)
+    await spark.stop()
+  }
+
+  @Test
   func table() async throws {
     let spark = try await SparkSession.builder.getOrCreate()
     #expect(try await spark.sql("DROP TABLE IF EXISTS t").count() == 0)
