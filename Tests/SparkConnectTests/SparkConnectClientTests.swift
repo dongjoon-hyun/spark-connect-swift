@@ -62,4 +62,24 @@ struct SparkConnectClientTests {
     #expect(await client.getExecutePlanRequest(plan).tags.isEmpty)
     await client.stop()
   }
+
+  @Test
+  func ddlParse() async throws {
+    let client = SparkConnectClient(remote: "sc://localhost", user: "test")
+    let _ = try await client.connect(UUID().uuidString)
+    #expect(try await client.ddlParse("a int").simpleString == "struct<a:int>")
+    await client.stop()
+  }
+
+#if !os(Linux) // TODO: Enable this with the offical Spark 4 docker image
+  @Test
+  func jsonToDdl() async throws {
+    let client = SparkConnectClient(remote: "sc://localhost", user: "test")
+    let _ = try await client.connect(UUID().uuidString)
+    let json =
+      #"{"type":"struct","fields":[{"name":"id","type":"long","nullable":false,"metadata":{}}]}"#
+    #expect(try await client.jsonToDdl(json) == "id BIGINT NOT NULL")
+    await client.stop()
+  }
+#endif
 }
