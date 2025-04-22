@@ -452,6 +452,17 @@ struct DataFrameTests {
   }
 
   @Test
+  func lateralJoin() async throws {
+    let spark = try await SparkSession.builder.getOrCreate()
+    let df1 = try await spark.sql("SELECT * FROM VALUES ('a', '1'), ('b', '2') AS T(a, b)")
+    let df2 = try await spark.sql("SELECT EXPLODE(array(1, 2, 3)) c")
+    try await df1.show()
+    try await df2.show()
+    try await df1.lateralJoin(df2).show()
+    await spark.stop()
+  }
+
+  @Test
   func except() async throws {
     let spark = try await SparkSession.builder.getOrCreate()
     let df = try await spark.range(1, 3)
