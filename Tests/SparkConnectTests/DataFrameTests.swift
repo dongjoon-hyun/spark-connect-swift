@@ -125,6 +125,19 @@ struct DataFrameTests {
   }
 
   @Test
+  func sameSemantics() async throws {
+    let spark = try await SparkSession.builder.getOrCreate()
+    let df1 = try await spark.range(1)
+    let df2 = try await spark.range(1)
+    let df3 = try await spark.range(2)
+    #expect(try await df1.sameSemantics(other: df2))
+    #expect(try await df1.semanticHash() == df2.semanticHash())
+    #expect(try await df1.sameSemantics(other: df3) == false)
+    #expect(try await df1.semanticHash() != df3.semanticHash())
+    await spark.stop()
+  }
+
+  @Test
   func explain() async throws {
     let spark = try await SparkSession.builder.getOrCreate()
     try await spark.range(1).explain()
