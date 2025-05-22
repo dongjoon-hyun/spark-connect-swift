@@ -113,6 +113,6 @@ Run from source code.
 ```
 $ swift run
 ...
-Connected to Apache Spark 4.0.0.9-apple-SNAPSHOT Server
+Connected to Apache Spark 4.0.0 Server
 spark-sql (default)>
 ```
