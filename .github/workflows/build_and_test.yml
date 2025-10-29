@@ -56,9 +56,6 @@ jobs:
     timeout-minutes: 20
     steps:
     - uses: actions/checkout@v5
-    - uses: swift-actions/setup-swift@d10500c1ac8822132eebbd74c48c3372c71d7ff5
-      with:
-        swift-version: "6.1"
     - name: Build
       run: swift build -c release
 
@@ -135,9 +132,6 @@ jobs:
       SPARK_LOCAL_IP: localhost
     steps:
     - uses: actions/checkout@v5
-    - uses: swift-actions/setup-swift@d10500c1ac8822132eebbd74c48c3372c71d7ff5
-      with:
-        swift-version: "6.1"
     - name: Build
       run: swift test --filter NOTHING -c release
     - name: Test
@@ -157,9 +151,6 @@ jobs:
       SPARK_LOCAL_IP: localhost
     steps:
     - uses: actions/checkout@v5
-    - uses: swift-actions/setup-swift@d10500c1ac8822132eebbd74c48c3372c71d7ff5
-      with:
-        swift-version: "6.1"
     - name: Build
       run: swift test --filter NOTHING -c release
     - name: Test
@@ -180,9 +171,6 @@ jobs:
       SPARK_CONNECT_AUTHENTICATE_TOKEN: ${{ github.run_id }}-${{ github.run_attempt }}
     steps:
     - uses: actions/checkout@v5
-    - uses: swift-actions/setup-swift@d10500c1ac8822132eebbd74c48c3372c71d7ff5
-      with:
-        swift-version: "6.1"
     - name: Build
       run: swift test --filter NOTHING -c release
     - name: Test
@@ -202,9 +190,6 @@ jobs:
       SPARK_LOCAL_IP: localhost
     steps:
     - uses: actions/checkout@v5
-    - uses: swift-actions/setup-swift@d10500c1ac8822132eebbd74c48c3372c71d7ff5
-      with:
-        swift-version: "6.1"
     - name: Install Java
       uses: actions/setup-java@v4
       with:
@@ -230,9 +215,6 @@ jobs:
       SPARK_ICEBERG_TEST_ENABLED: "true"
     steps:
     - uses: actions/checkout@v5
-    - uses: swift-actions/setup-swift@d10500c1ac8822132eebbd74c48c3372c71d7ff5
-      with:
-        swift-version: "6.1"
     - name: Install Java
       uses: actions/setup-java@v4
       with:
@@ -259,9 +241,6 @@ jobs:
       SPARK_ICEBERG_TEST_ENABLED: "true"
     steps:
     - uses: actions/checkout@v5
-    - uses: swift-actions/setup-swift@d10500c1ac8822132eebbd74c48c3372c71d7ff5
-      with:
-        swift-version: "6.1"
     - name: Install Java
       uses: actions/setup-java@v4
       with:
