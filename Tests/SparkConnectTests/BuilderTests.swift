@@ -17,6 +17,7 @@
 // under the License.
 //
 
+// We cannot use `FoundationEssentials` because `Bundle` is in `Foundation` only.
 import Foundation
 import Testing
 
