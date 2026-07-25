@@ -1342,6 +1342,20 @@ public actor SparkConnectClient {
     }
   }
 
+  static func getDefineFlow(
+    _ dataflowGraphID: String,
+    _ flowName: String,
+    _ targetDatasetName: String,
+    _ relation: Relation
+  ) -> Spark_Connect_PipelineCommand.DefineFlow {
+    var defineFlow = Spark_Connect_PipelineCommand.DefineFlow()
+    defineFlow.dataflowGraphID = dataflowGraphID
+    defineFlow.flowName = flowName
+    defineFlow.targetDatasetName = targetDatasetName
+    defineFlow.relationFlowDetails.relation = relation
+    return defineFlow
+  }
+
   @discardableResult
   func defineFlow(
     _ dataflowGraphID: String,
@@ -1354,11 +1368,8 @@ public actor SparkConnectClient {
         throw SparkConnectError.InvalidArgument
       }
 
-      var defineFlow = Spark_Connect_PipelineCommand.DefineFlow()
-      defineFlow.dataflowGraphID = dataflowGraphID
-      defineFlow.flowName = flowName
-      defineFlow.targetDatasetName = targetDatasetName
-      // defineFlow.relation = relation
+      let defineFlow = SparkConnectClient.getDefineFlow(
+        dataflowGraphID, flowName, targetDatasetName, relation)
 
       var pipelineCommand = Spark_Connect_PipelineCommand()
       pipelineCommand.commandType = .defineFlow(defineFlow)
