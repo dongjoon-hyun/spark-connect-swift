@@ -373,6 +373,27 @@ struct DataFrameTests {
   }
 
   @Test
+  func randomSplit() async throws {
+    let spark = try await SparkSession.builder.getOrCreate()
+    let df = try await spark.range(1000)
+    let splits = try await df.randomSplit([1.0, 2.0, 3.0], 0)
+    #expect(splits.count == 3)
+    var total: Int64 = 0
+    for split in splits {
+      total += try await split.count()
+    }
+    #expect(total == 1000)
+    for (df1, df2) in zip(splits, try await df.randomSplit([1.0, 2.0, 3.0], 0)) {
+      #expect(try await df1.count() == df2.count())
+    }
+    await #expect(throws: SparkConnectError.InvalidArgument) { try await df.randomSplit([]) }
+    await #expect(throws: SparkConnectError.InvalidArgument) {
+      try await df.randomSplit([1.0, -1.0])
+    }
+    await spark.stop()
+  }
+
+  @Test
   func isEmpty() async throws {
     let spark = try await SparkSession.builder.getOrCreate()
     #expect(try await spark.range(0).isEmpty())
