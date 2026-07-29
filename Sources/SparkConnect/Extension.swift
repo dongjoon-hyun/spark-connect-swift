@@ -36,47 +36,8 @@ extension String {
   }
 
   private func toExpression(_ value: Sendable) throws -> Spark_Connect_Expression {
-    var literal = ExpressionLiteral()
-    switch value {
-    case let value as Bool:
-      literal.boolean = value
-    case let value as Int8:
-      literal.byte = Int32(value)
-    case let value as Int16:
-      literal.short = Int32(value)
-    case let value as Int32:
-      literal.integer = value
-    case let value as Int64:
-      literal.long = value
-    case let value as Int:
-      literal.long = Int64(value)
-    case let value as Float:
-      literal.float = value
-    case let value as Double:
-      literal.double = value
-    case let value as Decimal:
-      var decimal = ExpressionLiteral.Decimal()
-      decimal.value = "\(value)"
-      literal.decimal = decimal
-    case let value as String:
-      literal.string = value
-    case let value as Data:
-      literal.binary = value
-    case let value as Date:
-      // `Date` is an absolute point in time, so it maps to Spark's `TIMESTAMP`
-      // (microseconds since the UNIX epoch), not `DATE`.
-      literal.timestamp = Int64(value.timeIntervalSince1970 * 1_000_000)
-    default:
-      if case Optional<Any>.none = value as Any {
-        var dataType = DataType()
-        dataType.null = DataType.NULL()
-        literal.null = dataType
-      } else {
-        throw SparkConnectError.InvalidType
-      }
-    }
     var expr = Spark_Connect_Expression()
-    expr.literal = literal
+    expr.literal = try ExpressionLiteral(value)
     return expr
   }
 
@@ -196,6 +157,55 @@ extension String {
       default: OutputType.UNRECOGNIZED(-1)
       }
     return mode
+  }
+}
+
+/// Inside `extension ExpressionLiteral`, the unqualified name `Decimal` refers to
+/// the nested `Literal.Decimal` proto type, so resolve Swift's `Decimal` at file scope.
+private typealias SwiftDecimal = Decimal
+
+extension ExpressionLiteral {
+  /// Create an `ExpressionLiteral` from a Swift value of a supported type.
+  init(_ value: Sendable) throws {
+    self.init()
+    switch value {
+    case let value as Bool:
+      self.boolean = value
+    case let value as Int8:
+      self.byte = Int32(value)
+    case let value as Int16:
+      self.short = Int32(value)
+    case let value as Int32:
+      self.integer = value
+    case let value as Int64:
+      self.long = value
+    case let value as Int:
+      self.long = Int64(value)
+    case let value as Float:
+      self.float = value
+    case let value as Double:
+      self.double = value
+    case let value as SwiftDecimal:
+      var decimal = ExpressionLiteral.Decimal()
+      decimal.value = "\(value)"
+      self.decimal = decimal
+    case let value as String:
+      self.string = value
+    case let value as Data:
+      self.binary = value
+    case let value as Date:
+      // `Date` is an absolute point in time, so it maps to Spark's `TIMESTAMP`
+      // (microseconds since the UNIX epoch), not `DATE`.
+      self.timestamp = Int64(value.timeIntervalSince1970 * 1_000_000)
+    default:
+      if case Optional<Any>.none = value as Any {
+        var dataType = DataType()
+        dataType.null = DataType.NULL()
+        self.null = dataType
+      } else {
+        throw SparkConnectError.InvalidType
+      }
+    }
   }
 }
 

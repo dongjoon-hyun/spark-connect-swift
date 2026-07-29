@@ -21,11 +21,46 @@ public actor GroupedData {
   let df: DataFrame
   let groupType: GroupType
   let groupingCols: [String]
+  let pivot: Aggregate.Pivot?
 
-  init(_ df: DataFrame, _ groupType: GroupType, _ groupingCols: [String]) {
+  init(
+    _ df: DataFrame, _ groupType: GroupType, _ groupingCols: [String],
+    _ pivot: Aggregate.Pivot? = nil
+  ) {
     self.df = df
     self.groupType = groupType
     self.groupingCols = groupingCols
+    self.pivot = pivot
+  }
+
+  /// Pivots a column of the current ``DataFrame`` and performs the specified aggregation.
+  /// The server computes the list of distinct values of the pivot column.
+  /// - Parameter colName: Name of the column to pivot.
+  /// - Returns: A ``GroupedData``.
+  public nonisolated func pivot(_ colName: String) throws -> GroupedData {
+    return try pivot(colName, [])
+  }
+
+  /// Pivots a column of the current ``DataFrame`` and performs the specified aggregation.
+  ///
+  /// ```swift
+  /// let df2 = try await df.groupBy("year")
+  ///     .pivot("course", ["dotNET", "Java"])
+  ///     .agg("sum(earnings)")
+  /// ```
+  /// - Parameters:
+  ///   - colName: Name of the column to pivot.
+  ///   - values: List of values that will be translated to columns in the output ``DataFrame``.
+  ///     If empty, the server computes the list of distinct values of the pivot column.
+  /// - Returns: A ``GroupedData``.
+  public nonisolated func pivot(_ colName: String, _ values: [Sendable]) throws -> GroupedData {
+    guard self.groupType == .groupby else {
+      throw SparkConnectError.UnsupportedOperation
+    }
+    var pivot = Aggregate.Pivot()
+    pivot.col = colName.toExpression
+    pivot.values = try values.map { try ExpressionLiteral($0) }
+    return GroupedData(self.df, GroupType.pivot, self.groupingCols, pivot)
   }
 
   public func agg(_ exprs: String...) async -> DataFrame {
@@ -105,6 +140,9 @@ public actor GroupedData {
     aggregate.groupType = self.groupType
     aggregate.groupingExpressions = self.groupingCols.map { $0.toExpression }
     aggregate.aggregateExpressions = exprs
+    if let pivot = self.pivot {
+      aggregate.pivot = pivot
+    }
     var relation = Relation()
     relation.aggregate = aggregate
     var plan = Plan()

@@ -1031,6 +1031,49 @@ struct DataFrameTests {
   }
 
   @Test
+  func pivot() async throws {
+    let spark = try await SparkSession.builder.getOrCreate()
+    let rows = try await spark.sql(DEALER_TABLE).groupBy("city")
+      .pivot("car_model", ["Honda Civic", "Honda CRV"])
+      .agg("sum(quantity)").orderBy("city").collect()
+    #expect(
+      rows == [
+        Row("Dublin", 20, 3),
+        Row("Fremont", 10, 7),
+        Row("San Jose", 5, nil),
+      ])
+    await spark.stop()
+  }
+
+  @Test
+  func pivotWithoutValues() async throws {
+    let spark = try await SparkSession.builder.getOrCreate()
+    let rows = try await spark.sql(DEALER_TABLE).groupBy("city")
+      .pivot("car_model")
+      .agg("sum(quantity)").orderBy("city").collect()
+    #expect(
+      rows == [
+        Row("Dublin", 10, 3, 20),
+        Row("Fremont", 15, 7, 10),
+        Row("San Jose", 8, nil, 5),
+      ])
+    await spark.stop()
+  }
+
+  @Test
+  func pivotUnsupportedOperation() async throws {
+    let spark = try await SparkSession.builder.getOrCreate()
+    let df = try await spark.sql(DEALER_TABLE)
+    await #expect(throws: SparkConnectError.UnsupportedOperation) {
+      try await df.rollup("city").pivot("car_model")
+    }
+    await #expect(throws: SparkConnectError.UnsupportedOperation) {
+      try await df.cube("city").pivot("car_model")
+    }
+    await spark.stop()
+  }
+
+  @Test
   func toJSON() async throws {
     let spark = try await SparkSession.builder.getOrCreate()
     let df = try await spark.range(2).toJSON()
