@@ -721,14 +721,16 @@ public actor SparkConnectClient {
   }
 
   static func getSample(
-    _ child: Relation, _ withReplacement: Bool, _ fraction: Double, _ seed: Int64
+    _ child: Relation, _ withReplacement: Bool, _ lowerBound: Double, _ upperBound: Double,
+    _ seed: Int64, _ deterministicOrder: Bool = false
   ) -> Plan {
     var sample = Sample()
     sample.input = child
     sample.withReplacement = withReplacement
-    sample.lowerBound = 0.0
-    sample.upperBound = fraction
+    sample.lowerBound = lowerBound
+    sample.upperBound = upperBound
     sample.seed = seed
+    sample.deterministicOrder = deterministicOrder
     return createPlan { $0.sample = sample }
   }
 

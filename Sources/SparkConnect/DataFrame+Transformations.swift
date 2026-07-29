@@ -278,7 +278,7 @@ extension DataFrame {
   public func sample(_ withReplacement: Bool, _ fraction: Double, _ seed: Int64) -> DataFrame {
     return DataFrame(
       spark: self.spark,
-      plan: SparkConnectClient.getSample(self.plan.root, withReplacement, fraction, seed))
+      plan: SparkConnectClient.getSample(self.plan.root, withReplacement, 0.0, fraction, seed))
   }
 
   /// Returns a new ``Dataset`` by sampling a fraction of rows, using a random seed.
@@ -307,6 +307,37 @@ extension DataFrame {
   /// - Returns: A subset of the records.
   public func sample(_ fraction: Double) -> DataFrame {
     return sample(false, fraction)
+  }
+
+  /// Randomly splits this ``DataFrame`` with the provided weights, using a user-supplied seed.
+  /// - Parameters:
+  ///   - weights: Weights for splits. Must be non-empty and positive. They will be normalized
+  ///     if they don't sum up to 1.
+  ///   - seed: Seed for sampling.
+  /// - Returns: An array of ``DataFrame``s whose element count is equal to the weight count.
+  public func randomSplit(_ weights: [Double], _ seed: Int64) throws -> [DataFrame] {
+    guard !weights.isEmpty, weights.allSatisfy({ $0 > 0 }) else {
+      throw SparkConnectError.InvalidArgument
+    }
+    let sum = weights.reduce(0, +)
+    var normalizedCumWeights: [Double] = [0.0]
+    for weight in weights {
+      normalizedCumWeights.append(normalizedCumWeights.last! + weight / sum)
+    }
+    return (0..<weights.count).map { i in
+      DataFrame(
+        spark: self.spark,
+        plan: SparkConnectClient.getSample(
+          self.plan.root, false, normalizedCumWeights[i], normalizedCumWeights[i + 1], seed, true))
+    }
+  }
+
+  /// Randomly splits this ``DataFrame`` with the provided weights, using a random seed.
+  /// - Parameter weights: Weights for splits. Must be non-empty and positive. They will be
+  ///   normalized if they don't sum up to 1.
+  /// - Returns: An array of ``DataFrame``s whose element count is equal to the weight count.
+  public func randomSplit(_ weights: [Double]) throws -> [DataFrame] {
+    return try randomSplit(weights, Int64.random(in: Int64.min...Int64.max))
   }
 
   // MARK: - Join Operations
