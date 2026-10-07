@@ -1303,8 +1303,13 @@ struct DataFrameTests {
   func dropDuplicatesWithinWatermark() async throws {
     let spark = try await SparkSession.builder.getOrCreate()
     let df = try await spark.sql("SELECT * FROM VALUES (1), (2), (3), (1), (3) T(a)")
-    #expect(try await df.dropDuplicatesWithinWatermark().count() == 3)
-    #expect(try await df.dropDuplicatesWithinWatermark("a").count() == 3)
+    // Spark doesn't support `dropDuplicatesWithinWatermark` with batch DataFrames.
+    try await #require(throws: Error.self) {
+      try await df.dropDuplicatesWithinWatermark().count()
+    }
+    try await #require(throws: Error.self) {
+      try await df.dropDuplicatesWithinWatermark("a").count()
+    }
     await spark.stop()
   }
 
@@ -1323,7 +1328,9 @@ struct DataFrameTests {
         """
       )
       .withWatermark("eventTime", "1 minute")  // This tests only API for now
-    #expect(try await df.dropDuplicatesWithinWatermark("data").count() == 1)
+    try await #require(throws: Error.self) {
+      try await df.dropDuplicatesWithinWatermark("data").count()
+    }
     await spark.stop()
   }
 
