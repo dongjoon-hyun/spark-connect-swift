@@ -709,6 +709,7 @@ public actor SparkConnectClient {
     } else {
       deduplicate.columnNames = columnNames
     }
+    deduplicate.withinWatermark = withinWatermark
     return createPlan { $0.deduplicate = deduplicate }
   }
 
