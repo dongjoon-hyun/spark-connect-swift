@@ -165,4 +165,17 @@ struct DataFrameInternalTests {
     }
     await spark.stop()
   }
+
+  @Test
+  func dropDuplicatesWithinWatermarkPlan() async throws {
+    // This test doesn't require a running server because it only inspects the plan.
+    let spark = try SparkSession("sc://localhost")
+    var plan = Plan()
+    plan.root.range.end = 10
+    let df = DataFrame(spark: spark, plan: plan)
+    #expect(await df.dropDuplicates().plan.root.deduplicate.withinWatermark == false)
+    #expect(await df.dropDuplicates("id").plan.root.deduplicate.withinWatermark == false)
+    #expect(await df.dropDuplicatesWithinWatermark().plan.root.deduplicate.withinWatermark)
+    #expect(await df.dropDuplicatesWithinWatermark("id").plan.root.deduplicate.withinWatermark)
+  }
 }
